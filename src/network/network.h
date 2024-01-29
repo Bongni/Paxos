@@ -5,6 +5,7 @@
 #include <stdbool.h>
 
 #include "queue.h"
+#include "message.h"
 
 /*
     Datastructures
@@ -12,7 +13,7 @@
 
 typedef struct {
     int id;
-    Queue receiveQueue;
+    Queue *receiveQueue;
 } NetworkNode;
 
 typedef struct NetworkListNode {
@@ -53,5 +54,13 @@ NetworkNode *getNode(Network *network, int id);
 
 
 void removeNode(Network *network, int id);
+
+/*
+    Sending / receiving messages
+*/
+
+void sendMessage(Network *network, int receiver, Message msg);
+
+Message receiveMessage(Network *network, int id);
 
 #endif

@@ -44,9 +44,17 @@ NetworkNode *initNode(int id) {
 
 
     node->id = id;
-    node->receiveQueue = (Queue) {NULL, NULL};
+    node->receiveQueue = initQueue();
 
     return node;
+}
+
+void destroyNode(NetworkNode *node) {
+    if (node == NULL) return;
+
+    destroyQueue(node->receiveQueue);
+
+    free(node);
 }
 
 /*
@@ -122,7 +130,23 @@ void removeNode(Network *network, int id) {
         prev->next = listNode->next;
     }
 
-    free(listNode->node);
+    destroyNode(listNode->node);
     free(listNode);
     listNode = NULL;
+}
+
+/*
+    Sending / receiving messages
+*/
+
+void sendMessage(Network *network, int receiver, Message msg){
+    NetworkNode *node = getNode(network, receiver);
+
+    push(node->receiveQueue, msg);
+}
+
+Message receiveMessage(Network *network, int id){
+    NetworkNode *node = getNode(network, id);
+
+    return pop(node->receiveQueue);
 }

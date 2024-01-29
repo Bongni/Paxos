@@ -87,6 +87,26 @@ START_TEST(test_network_remove_permutation) {
     destroyNetwork(network);
 } END_TEST
 
+START_TEST(test_network_send_receive) {
+    Network *network = initNetwork();
+    NetworkNode *node0 = initNode(0);
+    NetworkNode *node1 = initNode(1);
+
+    addNode(network, node0);
+    addNode(network, node1);
+
+    Message msg = {0, 12};
+
+    sendMessage(network, 1, msg);
+    Message msg_ret = receiveMessage(network, 1);
+
+    ck_assert_int_eq(msg_ret.sender, msg.sender);
+    ck_assert_int_eq(msg_ret.value, msg.value);
+    printf(" [PASS] Test: msg_ret == msg \n");
+
+    destroyNetwork(network);
+} END_TEST
+
 Suite *network_suite(void) {
     Suite *s;
     TCase *tc_core;
