@@ -16,3 +16,8 @@ project(
 
 # Code
 add_subdirectory(src)
+
+# Tests
+enable_testing()
+
+add_subdirectory(tests)
