@@ -5,9 +5,19 @@
 #include <stdbool.h>
 #include <sys/socket.h>
 
-typedef struct NetworkNode NetworkNode;
+/*
+    Datastructures
+*/
+
+typedef struct Queue Queue;
+
+typedef struct QueueNode QueueNode;
 
 typedef struct Network Network;
+
+typedef struct NetworkNode NetworkNode;
+
+typedef struct NetworkListNode NetworkListNode;
 
 /*
     Initialization
@@ -17,23 +27,25 @@ Network *initNetwork();
 
 void destroyNetwork(Network *network);
 
+NetworkNode *initNode(int id);
+
 /*
     Adding / Removing nodes
 */
 
-int addNode(Network *network, int index, struct sockaddr *addr);
+int addNode(Network *network, NetworkNode *node);
 
 
-bool containsNode(Network *network, int index);
+bool containsNode(Network *network, int id);
 
 
-NetworkNode *getNetworkNode(Network *network, int index);
+NetworkListNode *getNetworkListNode(Network *network, int id);
 
-NetworkNode *getPrevNetworkNode(Network *network, int index);
+NetworkListNode *getPrevNetworkListNode(Network *network, int id);
 
-struct sockaddr *getNode(Network *network, int index);
+NetworkNode *getNode(Network *network, int id);
 
 
-void removeNode(Network *network, int index);
+void removeNode(Network *network, int id);
 
 #endif

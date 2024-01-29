@@ -3,26 +3,45 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <sys/socket.h>
+#include <stdio.h>
 
 /*
     Datastructures
 */
 
+typedef struct Queue {
+    QueueNode *first;
+    QueueNode *last;
+
+} Queue;
+
+typedef struct QueueNode {
+    int id;
+    int val;
+    QueueNode *next;
+    QueueNode *prev;
+} QueueNode;
+
 typedef struct Network {
-    NetworkNode *nodes;
+    NetworkListNode *nodes;
 } Network;
 
 typedef struct NetworkNode {
-    int index;
-    struct sockaddr *addr;
-    NetworkNode *next;
+    int id;
+    Queue receiveQueue;
 } NetworkNode;
+
+typedef struct NetworkListNode {
+    int id;
+    NetworkNode *node;
+    NetworkListNode *next;
+} NetworkListNode;
 
 /*
     Initialization
 */
 
-Network* initNetwork() {
+Network *initNetwork() {
     Network *network = (Network *) malloc(sizeof(Network));
 
     if (network == NULL) return NULL;
@@ -36,56 +55,79 @@ Network* initNetwork() {
 void destroyNetwork(Network *network) {
     if (network == NULL) return;
 
+    // Free all nodes in node list
+    NetworkListNode *curr = network->nodes;
+    NetworkListNode *next;
+
+    while(curr != NULL) {
+        next = curr->next;
+        free(curr);
+        curr = next;
+    }
+
+    // Free network
     free(network);
     network = NULL;
+}
+
+NetworkNode *initNode(int id) {
+    NetworkNode *node = (NetworkNode *) malloc(sizeof(NetworkNode));
+
+    if (node == NULL) return NULL;
+
+
+    node->id = id;
+    node->receiveQueue = (Queue) {NULL, NULL};
+
+    return node;
 }
 
 /*
     Adding / Removing nodes
 */
 
-int addNode(Network *network, int index, struct sockaddr *addr) {
-    NetworkNode *new = (NetworkNode *) malloc(sizeof(NetworkNode));
+int addNode(Network *network, NetworkNode *node) {
+    NetworkListNode *new = (NetworkListNode *) malloc(sizeof(NetworkListNode));
 
     if (new == NULL) return -1;
-    if (containsNode(network, index)) return -1;
+    if (containsNode(network, node->id)) return -1;
 
-    new->index = index;
-    new->addr = addr;
+    new->id = node->id;
+    new->node = node;
     new->next = network->nodes;
     network->nodes = new;
 
     return 0;
 }
 
-bool containsNode(Network *network, int index) {
-    NetworkNode *curr = network->nodes;
+bool containsNode(Network *network, int id) {
+    NetworkListNode *curr = network->nodes;
 
     while (curr != NULL) {
-        if (curr->index == index) return true;
+        if (curr->id == id) return true;
         curr = curr->next;
     }
 
     return false;
 }
 
-NetworkNode *getNetworkNode(Network *network, int index) {
-    NetworkNode *curr = network->nodes;
+NetworkListNode *getNetworkListNode(Network *network, int id) {
+    NetworkListNode *curr = network->nodes;
 
     while (curr != NULL) {
-        if (curr->index == index) return curr;
+        if (curr->id == id) return curr;
         curr = curr->next;
     }
 
     return NULL;
 }
 
-NetworkNode *getPrevNetworkNode(Network *network, int index) {
-    NetworkNode *curr = network->nodes;
-    NetworkNode *prev = NULL;
+NetworkListNode *getPrevNetworkListNode(Network *network, int id) {
+    NetworkListNode *curr = network->nodes;
+    NetworkListNode *prev = NULL;
 
     while (curr != NULL) {
-        if (curr->index == index) return prev;
+        if (curr->id == id) return prev;
         prev = curr;
         curr = curr->next;
     }
@@ -93,27 +135,28 @@ NetworkNode *getPrevNetworkNode(Network *network, int index) {
     return NULL;
 }
 
-struct sockaddr *getNode(Network *network, int index) {
-    NetworkNode *node = getNetworkNode(network, index);
+NetworkNode *getNode(Network *network, int id) {
+    NetworkListNode *listNode = getNetworkListNode(network, id);
 
-    if (node == NULL) return NULL;
+    if (listNode == NULL) return NULL;
 
-    return node->addr;
+    return listNode->node;
 }
 
-void removeNode(Network *network, int index) {
-    NetworkNode *node = getNetworkNode(network, index);
+void removeNode(Network *network, int id) {
+    NetworkListNode *listNode = getNetworkListNode(network, id);
 
-    if (node == NULL) return;
+    if (listNode == NULL) return;
 
-    if (network->nodes == node) {
-        network->nodes = node->next;
+    if (network->nodes == listNode) {
+        network->nodes = listNode->next;
     } else {
-        NetworkNode *prev = getPrevNetworkNode(network, index);
-        prev->next = node->next;
+        NetworkListNode *prev = getPrevNetworkListNode(network, id);
+        prev->next = listNode->next;
     }
 
-    free(node);
-    node = NULL;
+    free(listNode->node);
+    free(listNode);
+    listNode = NULL;
 }
 
