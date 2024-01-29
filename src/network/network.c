@@ -1,41 +1,9 @@
-#include "./network.h"
+#include "network.h"
 
 #include <stdlib.h>
 #include <stdbool.h>
-#include <sys/socket.h>
-#include <stdio.h>
 
-/*
-    Datastructures
-*/
-
-typedef struct Queue {
-    QueueNode *first;
-    QueueNode *last;
-
-} Queue;
-
-typedef struct QueueNode {
-    int id;
-    int val;
-    QueueNode *next;
-    QueueNode *prev;
-} QueueNode;
-
-typedef struct Network {
-    NetworkListNode *nodes;
-} Network;
-
-typedef struct NetworkNode {
-    int id;
-    Queue receiveQueue;
-} NetworkNode;
-
-typedef struct NetworkListNode {
-    int id;
-    NetworkNode *node;
-    NetworkListNode *next;
-} NetworkListNode;
+#include "queue.h"
 
 /*
     Initialization
@@ -67,7 +35,6 @@ void destroyNetwork(Network *network) {
 
     // Free network
     free(network);
-    network = NULL;
 }
 
 NetworkNode *initNode(int id) {
@@ -159,4 +126,3 @@ void removeNode(Network *network, int id) {
     free(listNode);
     listNode = NULL;
 }
-

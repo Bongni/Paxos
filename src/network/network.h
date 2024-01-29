@@ -3,21 +3,27 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
-#include <sys/socket.h>
+
+#include "queue.h"
 
 /*
     Datastructures
 */
 
-typedef struct Queue Queue;
+typedef struct {
+    int id;
+    Queue receiveQueue;
+} NetworkNode;
 
-typedef struct QueueNode QueueNode;
+typedef struct NetworkListNode {
+    int id;
+    NetworkNode *node;
+    struct NetworkListNode *next;
+} NetworkListNode;
 
-typedef struct Network Network;
-
-typedef struct NetworkNode NetworkNode;
-
-typedef struct NetworkListNode NetworkListNode;
+typedef struct {
+    NetworkListNode *nodes;
+} Network;
 
 /*
     Initialization

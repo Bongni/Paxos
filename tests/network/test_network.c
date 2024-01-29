@@ -5,7 +5,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-#include "../src/network.h"
+#include "../../src/network/network.h"
 
 START_TEST(test_network_initialization) {
     Network *network = initNetwork();
