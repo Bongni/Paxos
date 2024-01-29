@@ -12,3 +12,8 @@ Paxos-protocol
 
 5) make
 6) ./src/Paxos
+
+# Tests
+
+Uses Check. 
+Execute with make test in build folder. 
