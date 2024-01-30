@@ -40,7 +40,7 @@ int paxosServer(Node *server){
 
         int maxTicket = 0;
         int valueTicket = 0;
-        int value = 0;
+        server->value = 0;
 
         while(true) {
             if (canReceiveMessage(server->network, server->id)) {
@@ -50,24 +50,25 @@ int paxosServer(Node *server){
                     if(msg.ticket > maxTicket) {
                         maxTicket = msg.ticket;
 
-                        Message ok = {server->id, Ok, valueTicket, value};
+                        Message ok = {server->id, Ok, valueTicket, server->value};
                         sendMessage(server->network, msg.sender, ok);
                     }
                 } else if (msg.command == Propose) {
                     if(msg.ticket == maxTicket) {
-                        value = msg.value;
+                        server->value = msg.value;
                         valueTicket = msg.ticket;
 
-                        Message success = {server->id, Ok, valueTicket, value};
+                        Message success = {server->id, Ok, valueTicket, server->value};
                         sendMessage(server->network, msg.sender, success);
                     }
                 } else if (msg.command == Execute) {
-                    if(msg.value == value) {
-                        return value;
+                    if(msg.value == server->value) {
+                        pthread_exit(&server->value);
+                        return server->value;
                     }
                 }
             } else {
-                pthread_yield(NULL);
+                sched_yield();
             }
         }
     }

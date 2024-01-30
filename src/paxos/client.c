@@ -56,12 +56,10 @@ void executeAll(Node *client, int value) {
 
 int paxosClient(Node *client) {
 
-
     while(true) {
-        
+
         srand(time(NULL));
         int ticket = rand();
-        int value = client->value;
 
     /*
         Phase 1
@@ -81,7 +79,7 @@ int paxosClient(Node *client) {
         Network *majority = initNetwork();
 
         while(numberOk <= n / 2) {  /*TODO add timer*/
-            pthread_yield(NULL);
+            sched_yield();
 
             while(canReceiveMessage(client->network, client->id)) {
                 Message msg = receiveMessage(client->network, client->id);
@@ -93,13 +91,13 @@ int paxosClient(Node *client) {
 
                     if(msg.ticket > maxTicket) {
                         maxTicket = msg.ticket;
-                        value = msg.value;
+                        client->value = msg.value;
                     }
                 }
             }
         }
 
-        proposeMajority(client, majority, ticket, value);
+        proposeMajority(client, majority, ticket, client->value);
 
     /*
         Phase 3
@@ -108,7 +106,7 @@ int paxosClient(Node *client) {
         int numberSuccess = 0;
 
         while(numberSuccess <= n / 2) {  /*TODO add timer*/
-            pthread_yield(NULL);
+            sched_yield();
 
             while(canReceiveMessage(client->network, client->id)) {
                 Message msg = receiveMessage(client->network, client->id);
@@ -119,8 +117,9 @@ int paxosClient(Node *client) {
             }
         }
 
-        executeAll(client, value);
+        executeAll(client, client->value);
 
-        return value;
+        pthread_exit(&client->value);
+        return client->value;
     }
 }
