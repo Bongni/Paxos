@@ -62,15 +62,16 @@ void executeAll(Node *client, int value) {
 
 void *paxosClient(Node *client) {
 
+    srand(time(NULL) + client->id);
+    int ticket = rand();
+
+
     int stop;
 
     int timeout = 1000;
     clock_t start = clock();
 
     while(timer(start) < timeout) {
-        
-        srand(time(NULL));
-        int ticket = rand();
 
         sched_yield();
 
