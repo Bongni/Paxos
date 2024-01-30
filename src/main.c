@@ -26,31 +26,42 @@ void set_flags(char *argv[], int argc) {
     Setup environment
 */
 
-Node client;
-pthread_t clientThread;
+#define N 4
+#define M 5
 
-Node servers[5];
-pthread_t serverThreads[5];
+Node clients[N];
+pthread_t clientThreads[N];
+
+Node servers[M];
+pthread_t serverThreads[M];
 
 void setup() {
-    client = initClient(0, 42);
+    for(int i = 0; i < N; i++) {
+        clients[i] = initClient(i, 42 + i);
+    }
 
-    for(int i = 0; i < 5; i++) {
-        servers[i] = initServer(i + 1, 0);
+    for(int j = 0; j < M; j++) {
+        servers[j] = initServer(N + j, 0);
+    }
 
-        // Add client to server network
-        addClient(&servers[i], &client);
+    for(int i = 0; i < N; i++) {
+        for(int j = 0; j < M; j++) {
+            // Add client to server network
+            addClient(&servers[j], &clients[i]);
 
-        // Add server to client network
-        addServer(&client, &servers[i]);
+            // Add server to client network
+            addServer(&clients[i], &servers[j]);
+        }
     }
 }
 
 void teardown() {
-    destroyClient(&client);
+    for(int i = 0; i < N; i++) {
+        destroyClient(&clients[i]);
+    }
 
-    for(int i = 0; i < 5; i++) {
-        destroyServer(&servers[i]);
+    for(int j = 0; j < M; j++) {
+        destroyServer(&servers[j]);
     }
 }
 
@@ -70,25 +81,29 @@ int main (int argc, char *argv[]) {
 
     // Create server threads
 
-    for(int i = 0; i < 5; i++) {
-        pthread_create(&serverThreads[i], NULL, (void * (*)(void *)) paxosServer, &servers[i]);
+    for(int j = 0; j < M; j++) {
+        pthread_create(&serverThreads[j], NULL, (void * (*)(void *)) paxosServer, &servers[j]);
     }
 
     // Create client thread
 
-    pthread_create(&clientThread, NULL, (void * (*)(void *)) paxosClient, &client);
-
+    for(int i = 0; i < N; i++) {
+        pthread_create(&clientThreads[i], NULL, (void * (*)(void *)) paxosClient, &clients[i]);
+    }
     // Wait for the threads to complete
 
     int *value;
 
-    pthread_join(clientThread, (void *) &value);
-    printf("\nPaxos complete\n\n");
-    printf("Client value: %d\n", *value);
+    for(int i = 0; i < N; i++) {
+        pthread_join(clientThreads[i], (void *) &value);
+        if (i == 0) printf("\nPaxos complete\n\n");
+        printf("Client %d value: %d\n", i, *value);
+    }
 
-    for(int i = 0; i < 5; i++) {
-        pthread_join(serverThreads[i], (void *) &value);
-        printf("Server %d value: %d\n", i, *value);
+    for(int j = 0; j < M; j++) {
+        pthread_join(serverThreads[j], (void *) &value);
+        if (j == 0) printf("\nServers\n\n");
+        printf("Server %d value: %d\n", N + j, *value);
     }
 
     teardown();

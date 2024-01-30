@@ -2,6 +2,7 @@
 
 #include "../network/network.h"
 #include "server.h"
+#include "../helpers/timer.h"
 
 #include <time.h>
 #include <pthread.h>
@@ -61,10 +62,17 @@ void executeAll(Node *client, int value) {
 
 void *paxosClient(Node *client) {
 
-    while(true) {
+    int stop;
 
+    int timeout = 1000;
+    clock_t start = clock();
+
+    while(timer(start) < timeout) {
+        
         srand(time(NULL));
         int ticket = rand();
+
+        sched_yield();
 
     /*
         Phase 1
@@ -73,6 +81,8 @@ void *paxosClient(Node *client) {
         ticket++;
         printf("Client %d requestAll(%d)\n", client->id, ticket);
         requestAll(client, ticket);
+
+        sched_yield();
 
     /*
         Phase 2
@@ -84,7 +94,10 @@ void *paxosClient(Node *client) {
         int maxTicket = 0;
         Network *majority = initNetwork();
 
-        while(numberOk <= n / 2) {  /*TODO add timer*/
+        int timeoutPhase2 = 100;
+        clock_t startPhase2 = clock();
+
+        while(numberOk <= n / 2 && (stop = timer(startPhase2)) < timeoutPhase2) {
             sched_yield();
 
             while(canReceiveMessage(client->network, client->id)) {
@@ -103,8 +116,12 @@ void *paxosClient(Node *client) {
             }
         }
 
+        if (stop >= timeoutPhase2) continue;
+
         printf("Client %d proposeMajority(%d, %d)\n", client->id, ticket, client->value);
         proposeMajority(client, majority, ticket, client->value);
+
+        sched_yield();
 
     /*
         Phase 3
@@ -112,7 +129,10 @@ void *paxosClient(Node *client) {
 
         int numberSuccess = 0;
 
-        while(numberSuccess <= n / 2) {  /*TODO add timer*/
+        int timeoutPhase3 = 100;
+        clock_t startPhase3 = clock();
+
+        while(numberSuccess <= n / 2 && (stop = timer(startPhase3)) < timeoutPhase3) {  /*TODO add timer*/
             sched_yield();
 
             while(canReceiveMessage(client->network, client->id)) {
@@ -124,10 +144,15 @@ void *paxosClient(Node *client) {
             }
         }
 
+        if (stop >= timeoutPhase3) continue;
+
         printf("Client %d executeAll(%d)\n", client->id, client->value);
         executeAll(client, client->value);
 
         pthread_exit(&client->value);
         return NULL;
     }
+
+    printf("Client %d timed out ...\n", client->id);
+    pthread_exit(&client->value);
 }

@@ -10,6 +10,10 @@ set(LIB
     paxos/client.c
     paxos/server.h
     paxos/server.c
+
+
+    helpers/timer.h
+    helpers/timer.c
 )
 add_library(lib STATIC ${LIB})
 

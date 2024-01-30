@@ -2,9 +2,11 @@
 
 #include "../network/network.h"
 #include "node.h"
+#include "../helpers/timer.h"
 
 #include <pthread.h>
 #include <stdio.h>
+#include <time.h>
 
 /*
     Initialization
@@ -42,13 +44,16 @@ void removeClient(Node *server, Node *client){
 
 void *paxosServer(Node *server){
 
-    while(true) {
+    int timeout = 1000;
+    clock_t start = clock();
+
+    while(timer(start) < timeout) {
 
         int maxTicket = 0;
         int valueTicket = 0;
         server->value = 0;
 
-        while(true) {
+        while(timer(start) < timeout) {
             if (canReceiveMessage(server->network, server->id)) {
                 Message msg = receiveMessage(server->network, server->id);
     
@@ -75,11 +80,13 @@ void *paxosServer(Node *server){
                     server->value = msg.value;
                     printf("Server %d received execute(%d) from client %d\n", server->id, msg.value, msg.sender);
                     pthread_exit(&server->value);
-                    return NULL;
                 }
             } else {
                 sched_yield();
             }
         }
     }
+
+    printf("Server %d timed out ...\n", server->id);
+    pthread_exit(&server->value);
 }
