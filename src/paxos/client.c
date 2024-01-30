@@ -56,13 +56,12 @@ void executeAll(Node *client, int value) {
 
 int paxosClient(Node *client) {
 
-    srand(time(NULL));
-    int ticket = rand();
-    int value = client->value;
-
-    Queue *queue = client->node->receiveQueue;
 
     while(true) {
+        
+        srand(time(NULL));
+        int ticket = rand();
+        int value = client->value;
 
     /*
         Phase 1
@@ -81,11 +80,11 @@ int paxosClient(Node *client) {
         int maxTicket = 0;
         Network *majority = initNetwork();
 
-        while(numberOk <= n / 2) {
+        while(numberOk <= n / 2) {  /*TODO add timer*/
             pthread_yield(NULL);
 
-            while(length(queue) > 0) {
-                Message msg = pop(queue);
+            while(canReceiveMessage(client->network, client->id)) {
+                Message msg = receiveMessage(client->network, client->id);
 
                 if (msg.command == Ok) {
                     numberOk++;
@@ -108,11 +107,11 @@ int paxosClient(Node *client) {
 
         int numberSuccess = 0;
 
-        while(numberSuccess <= n / 2) {
+        while(numberSuccess <= n / 2) {  /*TODO add timer*/
             pthread_yield(NULL);
 
-            while(length(queue) > 0) {
-                Message msg = pop(queue);
+            while(canReceiveMessage(client->network, client->id)) {
+                Message msg = receiveMessage(client->network, client->id);
 
                 if (msg.command == Success) {
                     numberSuccess++;
@@ -121,7 +120,7 @@ int paxosClient(Node *client) {
         }
 
         executeAll(client, value);
-    }
 
-    return value;
+        return value;
+    }
 }

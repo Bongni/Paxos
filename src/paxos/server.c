@@ -3,6 +3,8 @@
 #include "../network/network.h"
 #include "node.h"
 
+#include <pthread.h>
+
 /*
     Initialization
 */
@@ -33,5 +35,40 @@ void removeClient(Node *server, Node *client){
 */
 
 int paxosServer(Node *server){
-    return -1;
+
+    while(true) {
+
+        int maxTicket = 0;
+        int valueTicket = 0;
+        int value = 0;
+
+        while(true) {
+            if (canReceiveMessage(server->network, server->id)) {
+                Message msg = receiveMessage(server->network, server->id);
+    
+                if (msg.command == RequestTicket) {
+                    if(msg.ticket > maxTicket) {
+                        maxTicket = msg.ticket;
+
+                        Message ok = {server->id, Ok, valueTicket, value};
+                        sendMessage(server->network, msg.sender, ok);
+                    }
+                } else if (msg.command == Propose) {
+                    if(msg.ticket == maxTicket) {
+                        value = msg.value;
+                        valueTicket = msg.ticket;
+
+                        Message success = {server->id, Ok, valueTicket, value};
+                        sendMessage(server->network, msg.sender, success);
+                    }
+                } else if (msg.command == Execute) {
+                    if(msg.value == value) {
+                        return value;
+                    }
+                }
+            } else {
+                pthread_yield(NULL);
+            }
+        }
+    }
 }

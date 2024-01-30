@@ -166,6 +166,12 @@ void broadcastMessage(Network *network, Message msg){
     }
 }
 
+bool canReceiveMessage(Network *network, int id){
+    NetworkNode *node = getNode(network, id);
+
+    return length(node->receiveQueue) > 0;
+}
+
 Message receiveMessage(Network *network, int id){
     NetworkNode *node = getNode(network, id);
 

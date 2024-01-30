@@ -14,12 +14,11 @@ set(PAXOS
     paxos/server.c
 )
 add_library(paxoslib STATIC ${PAXOS})
+target_link_libraries(paxoslib pthread)
 
 set(LIBS 
     network
     paxoslib
-
-    pthread    
 )
 
 add_executable(Paxos main.c)

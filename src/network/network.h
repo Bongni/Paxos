@@ -67,6 +67,8 @@ void sendMessage(Network *network, int receiver, Message msg);
 
 void broadcastMessage(Network *network, Message msg);
 
+bool canReceiveMessage(Network *network, int id);
+
 Message receiveMessage(Network *network, int id);
 
 #endif
