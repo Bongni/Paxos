@@ -4,6 +4,7 @@
 #include "node.h"
 
 #include <pthread.h>
+#include <stdio.h>
 
 /*
     Initialization
@@ -11,7 +12,7 @@
 
 Node initServer(int id, int value){
     Network *network = initNetwork();
-    Node *node = initNode(id);
+    NetworkNode *node = initNode(id);
 
     addNode(network, node);
 
@@ -55,6 +56,8 @@ void *paxosServer(Node *server){
                     if(msg.ticket > maxTicket) {
                         maxTicket = msg.ticket;
 
+                        printf("Server %d received request(%d) from client %d\n", server->id, msg.ticket, msg.sender);
+
                         Message ok = {server->id, Ok, valueTicket, server->value};
                         sendMessage(server->network, msg.sender, ok);
                     }
@@ -63,14 +66,16 @@ void *paxosServer(Node *server){
                         server->value = msg.value;
                         valueTicket = msg.ticket;
 
-                        Message success = {server->id, Ok, valueTicket, server->value};
+                        printf("Server %d received propose(%d, %d) from client %d\n", server->id, msg.ticket, msg.value, msg.sender);
+
+                        Message success = {server->id, Success, valueTicket, server->value};
                         sendMessage(server->network, msg.sender, success);
                     }
                 } else if (msg.command == Execute) {
-                    if(msg.value == server->value) {
-                        pthread_exit(&server->value);
-                        return NULL;
-                    }
+                    server->value = msg.value;
+                    printf("Server %d received execute(%d) from client %d\n", server->id, msg.value, msg.sender);
+                    pthread_exit(&server->value);
+                    return NULL;
                 }
             } else {
                 sched_yield();

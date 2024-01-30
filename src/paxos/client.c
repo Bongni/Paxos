@@ -4,8 +4,8 @@
 #include "server.h"
 
 #include <time.h>
-#include <stdlib.h>
 #include <pthread.h>
+#include <stdio.h>
 
 /*
     Initialization
@@ -13,7 +13,7 @@
 
 Node initClient(int id, int value) {
     Network *network = initNetwork();
-    Node *node = initNode(id);
+    NetworkNode *node = initNode(id);
 
     addNode(network, node);
 
@@ -71,6 +71,7 @@ void *paxosClient(Node *client) {
     */
 
         ticket++;
+        printf("Client %d requestAll(%d)\n", client->id, ticket);
         requestAll(client, ticket);
 
     /*
@@ -102,6 +103,7 @@ void *paxosClient(Node *client) {
             }
         }
 
+        printf("Client %d proposeMajority(%d, %d)\n", client->id, ticket, client->value);
         proposeMajority(client, majority, ticket, client->value);
 
     /*
@@ -122,6 +124,7 @@ void *paxosClient(Node *client) {
             }
         }
 
+        printf("Client %d executeAll(%d)\n", client->id, client->value);
         executeAll(client, client->value);
 
         pthread_exit(&client->value);

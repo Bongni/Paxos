@@ -83,6 +83,7 @@ int main (int argc, char *argv[]) {
     int *value;
 
     pthread_join(clientThread, (void *) &value);
+    printf("\nPaxos complete\n\n");
     printf("Client value: %d\n", *value);
 
     for(int i = 0; i < 5; i++) {
