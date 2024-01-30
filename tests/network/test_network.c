@@ -101,8 +101,26 @@ START_TEST(test_network_send_receive) {
     Message msg_ret = receiveMessage(network, 1);
 
     ck_assert_int_eq(msg_ret.sender, msg.sender);
-    ck_assert_int_eq(msg_ret.value, msg.value);
+    ck_assert_int_eq(msg_ret.command, msg.command);
     printf(" [PASS] Test: msg_ret == msg \n");
+
+    destroyNetwork(network);
+} END_TEST
+
+START_TEST(test_network_size) {
+    Network *network = initNetwork();
+    NetworkNode *node0 = initNode(0);
+    NetworkNode *node1 = initNode(1);
+    NetworkNode *node2 = initNode(2);
+    NetworkNode *node3 = initNode(3);
+
+    addNode(network, node0);
+    addNode(network, node1);
+    addNode(network, node2);
+    addNode(network, node3);
+
+    ck_assert_int_eq(size(network), 4);
+    printf(" [PASS] Test: size == 4 \n");
 
     destroyNetwork(network);
 } END_TEST
@@ -117,6 +135,7 @@ Suite *network_suite(void) {
     tcase_add_test(tc_core, test_network_initialization);
     tcase_add_test(tc_core, test_network_general);
     tcase_add_test(tc_core, test_network_remove_permutation);
+    tcase_add_test(tc_core, test_network_size);
     suite_add_tcase(s, tc_core);
 
     return s;

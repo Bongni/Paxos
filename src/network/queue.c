@@ -1,8 +1,8 @@
 #include "queue.h"
 
-#include <stdlib.h>
-
 #include "message.h"
+
+#include <stdlib.h>
 
 /*
     Initialization
@@ -77,4 +77,16 @@ Message pop(Queue *queue){
     }
 
     return first;
+}
+
+int length(Queue *queue) {
+    QueueNode *curr = queue->last;
+    int length = 0;
+
+    while (curr != NULL) {
+        length++;
+        curr = curr->next;
+    }
+
+    return length;
 }

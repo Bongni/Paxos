@@ -1,9 +1,9 @@
 #include "network.h"
 
+#include "queue.h"
+
 #include <stdlib.h>
 #include <stdbool.h>
-
-#include "queue.h"
 
 /*
     Initialization
@@ -118,6 +118,18 @@ NetworkNode *getNode(Network *network, int id) {
     return listNode->node;
 }
 
+int size(Network *network) {
+    NetworkListNode *curr = network->nodes;
+    int size = 0;
+
+    while (curr != NULL) {
+        size++;
+        curr = curr->next;
+    }
+
+    return size;
+}
+
 void removeNode(Network *network, int id) {
     NetworkListNode *listNode = getNetworkListNode(network, id);
 
@@ -130,7 +142,6 @@ void removeNode(Network *network, int id) {
         prev->next = listNode->next;
     }
 
-    destroyNode(listNode->node);
     free(listNode);
     listNode = NULL;
 }
@@ -143,6 +154,16 @@ void sendMessage(Network *network, int receiver, Message msg){
     NetworkNode *node = getNode(network, receiver);
 
     push(node->receiveQueue, msg);
+}
+
+void broadcastMessage(Network *network, Message msg){
+    NetworkListNode *node = network->nodes;
+
+    while(node != NULL) {
+        sendMessage(network, node->id, msg);
+
+        node = node->next;
+    }
 }
 
 Message receiveMessage(Network *network, int id){

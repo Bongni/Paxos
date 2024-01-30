@@ -1,11 +1,11 @@
 #ifndef NETWORK_H
 #define NETWORK_H
 
-#include <stdlib.h>
-#include <stdbool.h>
-
 #include "queue.h"
 #include "message.h"
+
+#include <stdlib.h>
+#include <stdbool.h>
 
 /*
     Datastructures
@@ -36,6 +36,8 @@ void destroyNetwork(Network *network);
 
 NetworkNode *initNode(int id);
 
+void destroyNode(NetworkNode *node);
+
 /*
     Adding / Removing nodes
 */
@@ -52,6 +54,8 @@ NetworkListNode *getPrevNetworkListNode(Network *network, int id);
 
 NetworkNode *getNode(Network *network, int id);
 
+int size(Network *network);
+
 
 void removeNode(Network *network, int id);
 
@@ -60,6 +64,8 @@ void removeNode(Network *network, int id);
 */
 
 void sendMessage(Network *network, int receiver, Message msg);
+
+void broadcastMessage(Network *network, Message msg);
 
 Message receiveMessage(Network *network, int id);
 

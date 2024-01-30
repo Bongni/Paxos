@@ -1,9 +1,9 @@
 #ifndef NETWORK_QUEUE_H
 #define NETWORK_QUEUE_H
 
-#include <stdlib.h>
-
 #include "message.h"
+
+#include <stdlib.h>
 
 /*
     Datastructures
@@ -35,5 +35,7 @@ void destroyQueue(Queue *queue);
 void push(Queue *queue, Message msg);
 
 Message pop(Queue *queue);
+
+int length(Queue *queue);
 
 #endif
