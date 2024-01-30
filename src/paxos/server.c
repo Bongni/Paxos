@@ -10,7 +10,12 @@
 */
 
 Node initServer(int id, int value){
-    return (Node) {id, value,  initNode(id), initNetwork()};
+    Network *network = initNetwork();
+    Node *node = initNode(id);
+
+    addNode(network, node);
+
+    return (Node) {id, value,  node, network};
 }
 
 void destroyServer(Node *server){
@@ -34,7 +39,7 @@ void removeClient(Node *server, Node *client){
     Paxos
 */
 
-int paxosServer(Node *server){
+void *paxosServer(Node *server){
 
     while(true) {
 
@@ -64,7 +69,7 @@ int paxosServer(Node *server){
                 } else if (msg.command == Execute) {
                     if(msg.value == server->value) {
                         pthread_exit(&server->value);
-                        return server->value;
+                        return NULL;
                     }
                 }
             } else {

@@ -14,6 +14,8 @@ project(
   LANGUAGES C
 )
 
+set(CMAKE_BUILD_TYPE Debug)
+
 # Code
 add_subdirectory(src)
 

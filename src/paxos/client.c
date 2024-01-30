@@ -12,7 +12,12 @@
 */
 
 Node initClient(int id, int value) {
-    return (Node) {id, value,  initNode(id), initNetwork()};
+    Network *network = initNetwork();
+    Node *node = initNode(id);
+
+    addNode(network, node);
+
+    return (Node) {id, value,  node, network};
 }
 
 void destroyClient(Node *client) {
@@ -54,7 +59,7 @@ void executeAll(Node *client, int value) {
     broadcastMessage(client->network, execute);
 }
 
-int paxosClient(Node *client) {
+void *paxosClient(Node *client) {
 
     while(true) {
 
@@ -120,6 +125,6 @@ int paxosClient(Node *client) {
         executeAll(client, client->value);
 
         pthread_exit(&client->value);
-        return client->value;
+        return NULL;
     }
 }

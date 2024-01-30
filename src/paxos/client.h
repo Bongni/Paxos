@@ -24,6 +24,6 @@ void removeServer(Node *client, Node *server);
     Paxos
 */
 
-int paxosClient(Node *client);
+void *paxosClient(Node *client);
 
 #endif

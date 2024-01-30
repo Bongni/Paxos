@@ -71,24 +71,23 @@ int main (int argc, char *argv[]) {
     // Create server threads
 
     for(int i = 0; i < 5; i++) {
-        pthread_create(&serverThreads[i], NULL, paxosServer, &servers[i]);
+        pthread_create(&serverThreads[i], NULL, (void * (*)(void *)) paxosServer, &servers[i]);
     }
 
     // Create client thread
 
-    pthread_create(&clientThread, NULL, paxosClient, &client);
+    pthread_create(&clientThread, NULL, (void * (*)(void *)) paxosClient, &client);
 
     // Wait for the threads to complete
 
-    int value;
-    int values[5];
+    int *value;
 
-    pthread_join(&clientThread, &value);
-    printf("Client value: %d\n", value);
+    pthread_join(clientThread, (void *) &value);
+    printf("Client value: %d\n", *value);
 
     for(int i = 0; i < 5; i++) {
-        pthread_join(&serverThreads[i], &values[i]);
-        printf("Server %d value: %d\n", i, values[i]);
+        pthread_join(serverThreads[i], (void *) &value);
+        printf("Server %d value: %d\n", i, *value);
     }
 
     teardown();
