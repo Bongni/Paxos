@@ -1,15 +1,4 @@
-#find_package(Check REQUIRED)
-#
-#include(CheckCSourceCompiles)
-#include(CheckCSourceRuns)
-#include(CheckFunctionExists)
-#include(CheckIncludeFile)
-#include(CheckIncludeFiles)
-#include(CheckLibraryExists)
-#include(CheckSymbolExists)
-#include(CheckTypeSize)
-
-# Check uses threads
+# Check needs threads library
 set(CHECK check pthread subunit m)
 
 #

@@ -44,16 +44,17 @@ void removeClient(Node *server, Node *client){
 
 void *paxosServer(Node *server){
 
-    int timeout = 1000;
+    int timeout1 = 1000;
+    int timeout2 = 2000;
     clock_t start = clock();
 
-    while(timer(start) < timeout) {
+    while(timer(start) < timeout2) {
 
         int maxTicket = 0;
         int valueTicket = 0;
         server->value = 0;
 
-        while(timer(start) < timeout) {
+        while(timer(start) < timeout1) {
             if (canReceiveMessage(server->network, server->id)) {
                 Message msg = receiveMessage(server->network, server->id);
     

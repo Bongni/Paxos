@@ -1,6 +1,8 @@
 # Paxos
 Paxos-protocol
 
+Implementation for educational purposes.
+
 # Setup
 
 1) Go to {path}/Paxos/
