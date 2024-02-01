@@ -5,7 +5,7 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
-#include "../../src/network/queue.h"
+#include "../../src/messages/queue.h"
 
 START_TEST(test_queue_init) {
     Queue *queue = initQueue();

@@ -1,8 +1,8 @@
 
-#include "network/network.h"
-#include "paxos/client.h"
-#include "paxos/server.h"
-#include "paxos/node.h"
+#include "networkSimulation/network.h"
+#include "paxosSimulation/client.h"
+#include "paxosSimulation/server.h"
+#include "paxosSimulation/node.h"
 
 #include <stdio.h>
 #include <stdbool.h>
