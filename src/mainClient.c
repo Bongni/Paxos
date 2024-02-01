@@ -7,11 +7,13 @@
 #include <string.h>
 #include <unistd.h>
 #include <arpa/inet.h>
+#include <pthread.h>
 
 #define PORT 8080
+#define N_CLIENTS 4
+#define N_SERVERS 5
 
-int main(int argc, char *argv) {
-    
+int setupClient(uint16_t port) {
     int client_fd;
     struct sockaddr_in server_addr;
     
@@ -21,7 +23,7 @@ int main(int argc, char *argv) {
     }
 
     server_addr.sin_family = AF_INET;
-    server_addr.sin_port = htons(PORT);
+    server_addr.sin_port = htons(port);
 
     if(inet_pton(AF_INET, "127.0.0.1", &server_addr.sin_addr) <= 0) {
         printf("\nInvalid address\n");
@@ -35,14 +37,41 @@ int main(int argc, char *argv) {
         return -1;
     }
 
-    Message message = {1, 2, 3, 4};
-    unsigned char serialized_message[sizeof(message)], *ptr;
+    return client_fd;
+}
 
-    ptr = serialize_message(serialized_message, &message);
+void sendMessage(int client_fd, Message *message) {
+    unsigned char serialized_message[sizeof(*message)], *ptr;
+
+    ptr = serialize_message(serialized_message, message);
 
     send(client_fd, serialized_message, ptr - serialized_message, 0);
     printf("Message sent\n");
+}
+
+void *runClient(void *) {
+    int client_fd = setupClient(PORT);
+
+    Message message = {1, 2, 3, 4};
+    sendMessage(client_fd, &message);    
 
     close(client_fd);
+}
+
+int main(int argc, char *argv) {
+
+    int client_fd[N_SERVERS];
+    pthread_t clientThread[N_SERVERS];
+
+    for (int i = 0; i < N_SERVERS; i++) {
+        client_fd[i] = setupClient(PORT);
+
+        pthread_create(&clientThread[i], NULL, (void * (*)(void *)) runClient, &client_fd[i]);
+    }
+
+    for (int i = 0; i < N_SERVERS; i++) {
+        pthread_join(clientThread[i], NULL);
+    }
+    
     return 0;
 }

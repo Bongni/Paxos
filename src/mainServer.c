@@ -6,11 +6,12 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdbool.h>
+#include <pthread.h>
 
 #define PORT 8080
+#define N 5
 
-int main(int argc, char *argv) {
-    
+int setupServer(uint16_t port) {
     int server_fd;
     struct sockaddr_in address;
     
@@ -21,7 +22,7 @@ int main(int argc, char *argv) {
 
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
-    address.sin_port = htons(PORT);
+    address.sin_port = htons(port);
 
     if(bind(server_fd, (struct sockaddr*) &address, sizeof(address)) < 0) {
         perror("bind failed");
@@ -33,31 +34,59 @@ int main(int argc, char *argv) {
         exit(EXIT_FAILURE);
     }
 
-    /*
-        Accept incoming connections
-    */
+    return server_fd;
+}
 
+Message receiveMessage(int server_fd) {
     int client_fd;
+    struct sockaddr_in address;
     socklen_t client_addrlen;
 
     Message message;
     unsigned char serialized_message[1024];
 
+    if((client_fd = accept(server_fd, (struct sockaddr*) &address, &client_addrlen)) < 0) {
+        perror("accept failed");
+        exit(EXIT_FAILURE);
+    }
+
+    read(client_fd, serialized_message, 1024 - 1);
+
+    deserialize_message(serialized_message, &message);
+
+    close(client_fd);
+
+    return message;
+}
+
+void * runServer(int *server_fd) {
+    Message message;
+
     while (true) {
-        if((client_fd = accept(server_fd, (struct sockaddr*) &address, &client_addrlen)) < 0) {
-            perror("accept failed");
-            exit(EXIT_FAILURE);
-        }
+        message = receiveMessage(*server_fd);
 
-        read(client_fd, serialized_message, 1024 - 1);
-
-        deserialize_message(serialized_message, &message);
-
-        printf("Message {%d, %d, %d, %d}\n", 
+        printf("Server %d \t Message {%d, %d, %d, %d}\n", 
+            *server_fd,
             message.sender, 
             message.command, 
             message.ticket, 
             message.value);
+    }
+}
+
+int main(int argc, char *argv) {
+
+    int server_fd[N];
+    pthread_t serverThread[N];
+
+    for (int i = 0; i < N; i++) {
+        server_fd[i] = setupServer(PORT + i);
+
+        pthread_create(&serverThread[i], NULL, (void * (*)(void *)) runServer, &server_fd[i]);
+    }
+
+    for (int i = 0; i < N; i++) {
+        pthread_join(serverThread[i], NULL);
     }
     
     return 0;
