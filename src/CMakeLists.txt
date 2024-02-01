@@ -46,9 +46,9 @@ add_executable(Paxos main.c)
 target_link_libraries(Paxos pthread lib_simulation)
 
 
-add_executable(Client main.c)
+add_executable(Client mainClient.c)
 target_link_libraries(Client pthread lib)
 
 
-add_executable(Server main.c)
+add_executable(Server mainServer.c)
 target_link_libraries(Server pthread lib)
