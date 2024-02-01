@@ -8,7 +8,6 @@ set(LIB_SIMULATION
     messages/queue.c
     messages/message.h
 
-
     paxosSimulation/client.h
     paxosSimulation/client.c
     paxosSimulation/server.h
@@ -28,6 +27,7 @@ set(LIB
     messages/queue.h 
     messages/queue.c
     messages/message.h
+    messages/message.c
 
 
     paxos/client.h

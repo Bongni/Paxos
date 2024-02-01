@@ -1,3 +1,5 @@
+#include "messages/message.h"
+
 #include <sys/socket.h>
 #include <stdlib.h>
 #include <netinet/in.h>
@@ -37,7 +39,9 @@ int main(int argc, char *argv) {
 
     int client_fd;
     socklen_t client_addrlen;
-    char message[1024] = { 0 };
+
+    Message message;
+    unsigned char serialized_message[1024];
 
     while (true) {
         if((client_fd = accept(server_fd, (struct sockaddr*) &address, &client_addrlen)) < 0) {
@@ -45,9 +49,15 @@ int main(int argc, char *argv) {
             exit(EXIT_FAILURE);
         }
 
-        read(client_fd, message, 1024 - 1);
+        read(client_fd, serialized_message, 1024 - 1);
 
-        printf("%s\n", message);
+        deserialize_message(serialized_message, &message);
+
+        printf("Message {%d, %d, %d, %d}\n", 
+            message.sender, 
+            message.command, 
+            message.ticket, 
+            message.value);
     }
     
     return 0;

@@ -1,3 +1,5 @@
+#include "messages/message.h"
+
 #include <sys/socket.h>
 #include <stdlib.h>
 #include <netinet/in.h>
@@ -33,8 +35,12 @@ int main(int argc, char *argv) {
         return -1;
     }
 
-    char *message = "Test!";
-    send(client_fd, message, strlen(message), 0);
+    Message message = {1, 2, 3, 4};
+    unsigned char serialized_message[sizeof(message)], *ptr;
+
+    ptr = serialize_message(serialized_message, &message);
+
+    send(client_fd, serialized_message, ptr - serialized_message, 0);
     printf("Message sent\n");
 
     close(client_fd);
