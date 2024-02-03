@@ -1,6 +1,6 @@
 #include "server.h"
 
-#include "../networkSimulation/network.h"
+#include "../network/network.h"
 #include "node.h"
 #include "../helpers/timer.h"
 
@@ -14,15 +14,11 @@
 
 Node initServer(int id, int value){
     Network *network = initNetwork();
-    NetworkNode *node = initNode(id);
 
-    addNode(network, node);
-
-    return (Node) {id, value,  node, network};
+    return (Node) {id, value, network};
 }
 
 void destroyServer(Node *server){
-    destroyNode(server->node);
     destroyNetwork(server->network);
 }
 
@@ -30,12 +26,12 @@ void destroyServer(Node *server){
     Add / Remove nodes
 */
 
-void addClient(Node *server, Node *client){
-    addNode(server->network, client->node);
+void addClient(Node *server, int client){
+    addNode(server->network, client);
 }
 
-void removeClient(Node *server, Node *client){
-    removeNode(server->network, client->node->id);
+void removeClient(Node *server, int client){
+    removeNode(server->network, client);
 }
 
 /*
@@ -44,8 +40,8 @@ void removeClient(Node *server, Node *client){
 
 void *paxosServer(Node *server){
 
-    int timeout1 = 1000;
-    int timeout2 = 2000;
+    int timeout1 = 4000;
+    int timeout2 = 8000;
     clock_t start = clock();
 
     while(timer(start) < timeout2) {
@@ -55,35 +51,33 @@ void *paxosServer(Node *server){
         server->value = 0;
 
         while(timer(start) < timeout1) {
-            if (canReceiveMessage(server->network, server->id)) {
-                Message msg = receiveMessage(server->network, server->id);
-    
-                if (msg.command == RequestTicket) {
-                    if(msg.ticket > maxTicket) {
-                        maxTicket = msg.ticket;
+            Message msg = receiveMessage(server->id);
 
-                        printf("Server %d received request(%d) from client %d\n", server->id, msg.ticket, msg.sender);
+            printf("Message received {%d, %d, %d, %d}\n", msg.sender, msg.command, msg.ticket, msg.value);
 
-                        Message ok = {server->id, Ok, valueTicket, server->value};
-                        sendMessage(server->network, msg.sender, ok);
-                    }
-                } else if (msg.command == Propose) {
-                    if(msg.ticket == maxTicket) {
-                        server->value = msg.value;
-                        valueTicket = msg.ticket;
+            if (msg.command == RequestTicket) {
+                if(msg.ticket > maxTicket) {
+                    maxTicket = msg.ticket;
 
-                        printf("Server %d received propose(%d, %d) from client %d\n", server->id, msg.ticket, msg.value, msg.sender);
+                    printf("Server %d received request(%d) from client %d\n", server->id, msg.ticket, msg.sender);
 
-                        Message success = {server->id, Success, valueTicket, server->value};
-                        sendMessage(server->network, msg.sender, success);
-                    }
-                } else if (msg.command == Execute) {
-                    server->value = msg.value;
-                    printf("Server %d received execute(%d) from client %d\n", server->id, msg.value, msg.sender);
-                    pthread_exit(&server->value);
+                    Message ok = {server->id, Ok, valueTicket, server->value};
+                    sendMessage(server->id, &ok);
                 }
-            } else {
-                sched_yield();
+            } else if (msg.command == Propose) {
+                if(msg.ticket == maxTicket) {
+                    server->value = msg.value;
+                    valueTicket = msg.ticket;
+
+                    printf("Server %d received propose(%d, %d) from client %d\n", server->id, msg.ticket, msg.value, msg.sender);
+
+                    Message success = {server->id, Success, valueTicket, server->value};
+                    sendMessage(msg.sender, &success);
+                }
+            } else if (msg.command == Execute) {
+                server->value = msg.value;
+                printf("Server %d received execute(%d) from client %d\n", server->id, msg.value, msg.sender);
+                pthread_exit(&server->value);
             }
         }
     }

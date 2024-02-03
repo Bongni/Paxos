@@ -1,6 +1,6 @@
 #include "client.h"
 
-#include "../networkSimulation/network.h"
+#include "../network/network.h"
 #include "server.h"
 #include "../helpers/timer.h"
 
@@ -14,15 +14,11 @@
 
 Node initClient(int id, int value) {
     Network *network = initNetwork();
-    NetworkNode *node = initNode(id);
 
-    addNode(network, node);
-
-    return (Node) {id, value,  node, network};
+    return (Node) {id, value, network};
 }
 
 void destroyClient(Node *client) {
-    destroyNode(client->node);
     destroyNetwork(client->network);
 }
 
@@ -30,12 +26,12 @@ void destroyClient(Node *client) {
     Add / Remove nodes
 */
 
-void addServer(Node *client, Node *server){
-    addNode(client->network, server->node);
+void addServer(Node *client, int server){
+    addNode(client->network, server);
 }
 
-void removeServer(Node *client, Node *server){
-    removeNode(client->network, server->node->id);
+void removeServer(Node *client, int server){
+    removeNode(client->network, server);
 }
 
 /*
@@ -45,19 +41,19 @@ void removeServer(Node *client, Node *server){
 void requestAll(Node *client, int ticket) {
     Message request = {client->id, RequestTicket, ticket, 0};
 
-    broadcastMessage(client->network, request);
+    broadcastMessage(client->network, &request);
 }
 
 void proposeMajority(Node *client, Network *majority, int ticket, int value) {
     Message propose = {client->id, Propose, ticket, value};
 
-    broadcastMessage(majority, propose);
+    broadcastMessage(majority, &propose);
 }
 
 void executeAll(Node *client, int value) {
     Message execute = {client->id, Execute, 0, value};
 
-    broadcastMessage(client->network, execute);
+    broadcastMessage(client->network, &execute);
 }
 
 void *paxosClient(Node *client) {
@@ -101,18 +97,16 @@ void *paxosClient(Node *client) {
         while(numberOk <= n / 2 && (stop = timer(startPhase2)) < timeoutPhase2) {
             sched_yield();
 
-            while(canReceiveMessage(client->network, client->id)) {
-                Message msg = receiveMessage(client->network, client->id);
+            Message msg = receiveMessage(client->id);
 
-                if (msg.command == Ok) {
-                    numberOk++;
-                    // Add all nodes that sent ok to majority
-                    addNode(majority, getNode(client->network, msg.sender));
+            if (msg.command == Ok) {
+                numberOk++;
+                // Add all nodes that sent ok to majority
+                addNode(majority, msg.sender);
 
-                    if(msg.ticket > maxTicket) {
-                        maxTicket = msg.ticket;
-                        client->value = msg.value;
-                    }
+                if(msg.ticket > maxTicket) {
+                    maxTicket = msg.ticket;
+                    client->value = msg.value;
                 }
             }
         }
@@ -136,12 +130,10 @@ void *paxosClient(Node *client) {
         while(numberSuccess <= n / 2 && (stop = timer(startPhase3)) < timeoutPhase3) {  /*TODO add timer*/
             sched_yield();
 
-            while(canReceiveMessage(client->network, client->id)) {
-                Message msg = receiveMessage(client->network, client->id);
+            Message msg = receiveMessage(client->id);
 
-                if (msg.command == Success) {
-                    numberSuccess++;
-                }
+            if (msg.command == Success) {
+                numberSuccess++;
             }
         }
 

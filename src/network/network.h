@@ -6,19 +6,14 @@
 
 #include <stdlib.h>
 #include <stdbool.h>
+#include <stdint.h>
 
 /*
     Datastructures
 */
 
-typedef struct {
-    int id;
-    Queue *receiveQueue;
-} NetworkNode;
-
 typedef struct NetworkListNode {
     int id;
-    NetworkNode *node;
     struct NetworkListNode *next;
 } NetworkListNode;
 
@@ -34,15 +29,11 @@ Network *initNetwork();
 
 void destroyNetwork(Network *network);
 
-NetworkNode *initNode(int id);
-
-void destroyNode(NetworkNode *node);
-
 /*
     Adding / Removing nodes
 */
 
-int addNode(Network *network, NetworkNode *node);
+int addNode(Network *network, int id);
 
 
 bool containsNode(Network *network, int id);
@@ -52,23 +43,29 @@ NetworkListNode *getNetworkListNode(Network *network, int id);
 
 NetworkListNode *getPrevNetworkListNode(Network *network, int id);
 
-NetworkNode *getNode(Network *network, int id);
-
 int size(Network *network);
 
 
 void removeNode(Network *network, int id);
 
 /*
+    Setup Client / Server
+*/
+
+int setupClient(uint16_t port);
+
+int setupServer(uint16_t port);
+
+int acceptConnection(int server_fd);
+
+/*
     Sending / receiving messages
 */
 
-void sendMessage(Network *network, int receiver, Message msg);
+void sendMessage(int receiver_fd, Message *msg);
 
-void broadcastMessage(Network *network, Message msg);
+void broadcastMessage(Network *network, Message *msg);
 
-bool canReceiveMessage(Network *network, int id);
-
-Message receiveMessage(Network *network, int id);
+Message receiveMessage(int node_fd);
 
 #endif

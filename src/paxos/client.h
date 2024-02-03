@@ -1,7 +1,7 @@
 #ifndef PAXOS_CLIENT_H
 #define PAXOS_CLIENT_H 
 
-#include "../networkSimulation/network.h"
+#include "../network/network.h"
 #include "node.h"
 
 /*
@@ -16,9 +16,9 @@ void destroyClient(Node *client);
     Add / Remove nodes
 */
 
-void addServer(Node *client, Node *server);
+void addServer(Node *client, int server);
 
-void removeServer(Node *client, Node *server);
+void removeServer(Node *client, int server);
 
 /*
     Paxos

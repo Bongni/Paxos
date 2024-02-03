@@ -15,6 +15,7 @@
         "variant": "c",
         "message.h": "c",
         "stdbool.h": "c",
-        "node.h": "c"
+        "node.h": "c",
+        "internet": "c"
     }
 }
